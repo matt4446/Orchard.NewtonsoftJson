@@ -11,21 +11,31 @@ namespace Orchard.NewtonsoftJson
 {
     public static class ViewExtensions
     {
-        public static HtmlString ToJsonDump<TModel, TItem>(HtmlHelper<TModel> html, Func<TModel, TItem> modelItem)
+        public static HtmlString ToJsonDumpFromItems<TItem>(this HtmlHelper html, IEnumerable<TItem> items)
         {
-            var item = modelItem(html.ViewData.Model);
+            return html.ToJsonDump(items);
+        }
+        public static HtmlString ToJsonDumpFromItems<TItem, TTransformedItem>(this HtmlHelper html, IEnumerable<TItem> items, Func<TItem, TTransformedItem> transform)
+        {
+            var transformedItems = items.Select(e=> transform(e)).ToArray();
 
-            return new HtmlString(item.ToJson());
+            return html.ToJsonDump(transformedItems);
         }
 
-        public static HtmlString ToJson<TModel, TItem, TTransform>(HtmlHelper<TModel> html, Func<TModel, TItem> modelItem, Func<TItem, TTransform> transform)
+
+
+        public static HtmlString ToJsonDump<TModel>(this HtmlHelper html, TModel model)
         {
-            var item = modelItem(html.ViewData.Model);
-            var transformedItem = transform(item);
+            return new HtmlString(model.ToJson());
+        }
+
+        public static HtmlString ToJsonDump<TModel, TTransform>(this HtmlHelper html, TModel model, 
+            Func<TModel, TTransform> transform)
+        {
+            var transformedItem = transform(model);
 
             return new HtmlString(transformedItem.ToJson());
         }
-
 
         private static string ToJson<TModel>(this TModel model) 
         {
