@@ -11,38 +11,42 @@ namespace Orchard.NewtonsoftJson
 {
     public static class ViewExtensions
     {
-        public static HtmlString ToJsonDumpFromItems<TItem>(this HtmlHelper html, IEnumerable<TItem> items)
+        public static HtmlString ToJsonDumpFromItems<TItem>(this HtmlHelper html, IEnumerable<TItem> items, bool useCamelCase = true)
         {
-            return html.ToJsonDump(items);
+            return html.ToJsonDump(items, useCamelCase);
         }
-        public static HtmlString ToJsonDumpFromItems<TItem, TTransformedItem>(this HtmlHelper html, IEnumerable<TItem> items, Func<TItem, TTransformedItem> transform)
+
+        public static HtmlString ToJsonDumpFromItems<TItem, TTransformedItem>(this HtmlHelper html, 
+            IEnumerable<TItem> items, 
+            Func<TItem, TTransformedItem> transform, bool useCamelCase = true)
         {
             var transformedItems = items.Select(e=> transform(e)).ToArray();
 
-            return html.ToJsonDump(transformedItems);
+            return html.ToJsonDump(transformedItems, useCamelCase);
         }
 
 
 
-        public static HtmlString ToJsonDump<TModel>(this HtmlHelper html, TModel model)
+        public static HtmlString ToJsonDump<TModel>(this HtmlHelper html, 
+            TModel model,
+            bool useCamelCase = true)
         {
-            return new HtmlString(model.ToJson());
+            return new HtmlString(model.ToJson(useCamelCase));
         }
 
-        public static HtmlString ToJsonDump<TModel, TTransform>(this HtmlHelper html, TModel model, 
-            Func<TModel, TTransform> transform)
+        public static HtmlString ToJsonDump<TModel, TTransform>(this HtmlHelper html, TModel model,
+            Func<TModel, TTransform> transform, bool useCamelCase = true)
         {
             var transformedItem = transform(model);
 
             return new HtmlString(transformedItem.ToJson());
         }
 
-        private static string ToJson<TModel>(this TModel model) 
+        private static string ToJson<TModel>(this TModel model, bool useCamelCase = true) 
         {
-            JsonSerializerSettings settings = new JsonSerializerSettings()
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            };
+            JsonSerializerSettings settings = useCamelCase ?
+                new JsonSerializerSettings() { ContractResolver = new CamelCasePropertyNamesContractResolver() } :
+                new JsonSerializerSettings() { };
 
             return JsonConvert.SerializeObject(model, Formatting.Indented, settings);
         }
